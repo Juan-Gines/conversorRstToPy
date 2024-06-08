@@ -4,6 +4,14 @@
 # Ignore virtual environment directories
 venv/
 docuEnv/
+docenv/
+
+# Ignore proves files .py
+
+scenario_sale.py
+prova/*/*.py
+prova/*/*/*.py
+prova/*.py
 
 # Ignore logs and temporary files
 *.log

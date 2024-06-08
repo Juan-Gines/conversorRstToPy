@@ -1,4 +1,5 @@
 import doctest
+import os
 
 def extract_doctests_to_py(rst_file, py_file):
     # Leer el contenido del archivo RST
@@ -17,15 +18,14 @@ def extract_doctests_to_py(rst_file, py_file):
     inside_doctest = False
 
     for item in doctests:
-        print (item)
         if isinstance(item, doctest.Example):
             if not inside_doctest:
                 inside_doctest = True
                 if current_docstring:
                     doctest_strings.append(''.join(current_docstring))
                 current_docstring = []
-            if  item.want:
-                current_docstring.append(f'assertEqual({item.source}, {item.want})')
+            if item.want:
+                current_docstring.append(f'assertEqual({item.source.strip()}, {item.want.strip()})')
             else:
                 current_docstring.append(f'{item.source}')
         else:
@@ -34,7 +34,8 @@ def extract_doctests_to_py(rst_file, py_file):
                 doctest_strings.append(''.join(current_docstring))
                 current_docstring = []
             if isinstance(item, str) and item.strip():
-                current_docstring.append(f'# {item}\n')
+                newItem = '# ' + item.replace('\n', '\n# ')
+                current_docstring.append(newItem)
 
     if current_docstring:
         doctest_strings.append(''.join(current_docstring))
@@ -49,7 +50,18 @@ def extract_doctests_to_py(rst_file, py_file):
     with open(py_file, 'w') as f:
         f.write(py_content)
 
+def process_directory(directory):
+    # Recorrer todos los archivos en la carpeta y subcarpetas
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.rst'):
+                rst_file = os.path.join(root, file)
+                py_file = os.path.splitext(rst_file)[0] + '.py'
+                extract_doctests_to_py(rst_file, py_file)
+
 if __name__ == "__main__":
-    rst_file = 'scenario_sale.rst'
-    py_file = 'doctests_scenario_sale.py'
-    extract_doctests_to_py(rst_file, py_file)
+    # Pedir la ruta de la carpeta, sino se usa la actual
+    directory = input("Introduce la ruta a la carpeta: ").strip()
+    if not directory:
+        directory = os.getcwd()
+    process_directory(directory)
