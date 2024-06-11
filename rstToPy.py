@@ -25,7 +25,12 @@ def extract_doctests_to_py(rst_file, py_file):
                     doctest_strings.append(''.join(current_docstring))
                 current_docstring = []
             if item.want:
-                current_docstring.append(f'assertEqual({item.source.strip()}, {item.want.strip()})')
+                if item.exc_msg:
+                    indexMsg = item.exc_msg.find(':')
+                    indexSource = item.source.find('#')
+                    current_docstring.append(f'with assertRaises({item.exc_msg[:indexMsg].strip()}):\n    {item.source[:indexSource].strip()}')
+                else:
+                    current_docstring.append(f'assertEqual({item.source.strip()}, {item.want.strip()})')
             else:
                 current_docstring.append(f'{item.source}')
         else:
@@ -59,9 +64,13 @@ def process_directory(directory):
                 py_file = os.path.splitext(rst_file)[0] + '.py'
                 extract_doctests_to_py(rst_file, py_file)
 
+def process_file(file):
+    rst_file = file
+    py_file = os.path.splitext(rst_file)[0] + '.py'
+    extract_doctests_to_py(rst_file, py_file)
 if __name__ == "__main__":
     # Pedir la ruta de la carpeta, sino se usa la actual
-    directory = input("Introduce la ruta a la carpeta: ").strip()
+    directory = input("Introdueix la ruta a la carpeta: ").strip()
     if not directory:
         directory = os.getcwd()
     process_directory(directory)
