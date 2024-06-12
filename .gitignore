@@ -9,9 +9,11 @@ docenv/
 # Ignore proves files .py
 
 scenario_sale.py
+scenario_sale2.py
 prova/*/*.py
 prova/*/*/*.py
 prova/*.py
+prueba.py
 
 # Ignore logs and temporary files
 *.log

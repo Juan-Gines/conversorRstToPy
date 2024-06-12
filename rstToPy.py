@@ -28,9 +28,9 @@ def extract_doctests_to_py(rst_file, py_file):
                 if item.exc_msg:
                     indexMsg = item.exc_msg.find(':')
                     indexSource = item.source.find('#')
-                    current_docstring.append(f'with assertRaises({item.exc_msg[:indexMsg].strip()}):\n    {item.source[:indexSource].strip()}')
+                    current_docstring.append(f'with assertRaises({item.exc_msg[:indexMsg].strip()}):\n    {item.source[:indexSource].strip()}\n')
                 else:
-                    current_docstring.append(f'assertEqual({item.source.strip()}, {item.want.strip()})')
+                    current_docstring.append(f'assertEqual({item.source.strip()}, {item.want.strip()})\n')
             else:
                 current_docstring.append(f'{item.source}')
         else:
@@ -38,18 +38,26 @@ def extract_doctests_to_py(rst_file, py_file):
                 inside_doctest = False
                 doctest_strings.append(''.join(current_docstring))
                 current_docstring = []
-            if isinstance(item, str) and item.strip():
-                newItem = '# ' + item.replace('\n', '\n# ')
-                current_docstring.append(newItem)
+            if isinstance(item, str) and item.strip() or item == '\n':
+                if item == '\n':
+                    current_docstring.append(item)
+                else:
+                    splitItem = item.split('\n')
+                    filteredItem = ''.join('# ' + line + '\n' for line in splitItem if line.strip())
+                    filteredItem = filteredItem.split('\n')
+                    for i in range(len(filteredItem)):
+                        if filteredItem[i].endswith('::'):
+                            filteredItem[i] = '\n' + filteredItem[i].replace('::', '')
+                        else:
+                            filteredItem[i] = filteredItem[i] + '\n'
+                    filteredItem = ''.join(filteredItem)
+                    current_docstring.append(filteredItem)
 
     if current_docstring:
         doctest_strings.append(''.join(current_docstring))
 
     # Crear el contenido del archivo Python
-    py_content = '' + '\n'.join(doctest_strings)
-
-    # Limpiar líneas en blanco innecesarias y comentarios
-    py_content = '\n'.join(line for line in py_content.split('\n') if line.strip())
+    py_content = ''.join(doctest_strings)
 
     # Escribir los doctests en el archivo Python
     with open(py_file, 'w') as f:
@@ -70,7 +78,10 @@ def process_file(file):
     extract_doctests_to_py(rst_file, py_file)
 if __name__ == "__main__":
     # Pedir la ruta de la carpeta, sino se usa la actual
-    directory = input("Introdueix la ruta a la carpeta: ").strip()
-    if not directory:
-        directory = os.getcwd()
-    process_directory(directory)
+    route = input('Introdueix la ruta a la carpeta o a l\'arxiu: ').strip()
+    if not route:
+        route = os.getcwd()
+    if route.endswith('.rst'):
+        process_file(route)
+    else:
+        process_directory(route)

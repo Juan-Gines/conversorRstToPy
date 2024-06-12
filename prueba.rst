@@ -1,89 +1,24 @@
-Sale 1 products::
+Create fiscal year::
 
-    >>> Sale = Model.get('sale.sale')
-    >>> SaleLine = Model.get('sale.line')
-    >>> sale = Sale()
-    >>> sale.party = customer
-    >>> sale.invoice_method = 'order'
-    >>> sale_line = SaleLine()
-    >>> sale.lines.append(sale_line)
-    >>> sale_line.product = product_sc1
-    >>> sale_line.quantity = 2.0
-    >>> sale_line.company_salable
-    True
-    >>> sale.click('quote')
+    >>> fiscalyear = set_fiscalyear_invoice_sequences(
+    ...     create_fiscalyear(company))
+    >>> fiscalyear.click('create_period')
 
-    >>> sale = Sale()
-    >>> sale.party = customer
-    >>> sale.invoice_method = 'order'
-    >>> sale_line = SaleLine()
-    >>> sale.lines.append(sale_line)
-    >>> sale_line.product = product_sc2
-    >>> sale_line.quantity = 2.0
-    >>> sale_line.company_salable
-    False
-    >>> sale.click('quote') # doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    ...
-    trytond.model.modelstorage.DomainValidationError: The value for field "Product" in "Sale Line" is not valid according to its domain. -
+Create chart of accounts::
 
-    >>> sale = Sale()
-    >>> sale.party = customer
-    >>> sale.invoice_method = 'order'
-    >>> sale_line = SaleLine()
-    >>> sale.lines.append(sale_line)
-    >>> sale_line.product = product_sc2n1
-    >>> sale_line.quantity = 2.0
-    >>> sale_line.company_salable
-    False
-    >>> sale.click('quote')# doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    ...
-    trytond.model.modelstorage.DomainValidationError: The value for field "Product" in "Sale Line" is not valid according to its domain. -
+    >>> _ = create_chart(company)
+    >>> accounts = get_accounts(company)
+    >>> revenue = accounts['revenue']
+    >>> expense = accounts['expense']
+    >>> cash = accounts['cash']
 
-    >>> sale = Sale()
-    >>> sale.party = customer
-    >>> sale.invoice_method = 'order'
-    >>> sale_line = SaleLine()
-    >>> sale.lines.append(sale_line)
-    >>> sale_line.product = product_sc2n2
-    >>> sale_line.quantity = 2.0
-    >>> sale_line.company_salable
-    True
-    >>> sale.click('quote')
-
-    >>> sale = Sale()
-    >>> sale.party = customer
-    >>> sale.invoice_method = 'order'
-    >>> sale_line = SaleLine()
-    >>> sale.lines.append(sale_line)
-    >>> sale_line.product = product_all
-    >>> sale_line.quantity = 2.0
-    >>> sale_line.company_salable
-    True
-    >>> sale.click('quote')
-
-    >>> sale = Sale()
-    >>> sale.party = customer
-    >>> sale.invoice_method = 'order'
-    >>> sale_line = SaleLine()
-    >>> sale.lines.append(sale_line)
-    >>> sale_line.product = product_none
-    >>> sale_line.quantity = 2.0
-    >>> sale_line.company_salable
-    True
-    >>> sale.click('quote')
-
-    >>> sale = Sale()
-    >>> sale.party = customer
-    >>> sale.invoice_method = 'order'
-    >>> sale_line = SaleLine()
-    >>> sale.lines.append(sale_line)
-    >>> sale_line.product = product_all_ns
-    >>> sale_line.quantity = 2.0
-    >>> sale_line.company_salable
-    False
-    >>> sale.click('quote')# doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    ...
-    trytond.model.modelstorage.DomainValidationError: The value for field "Product" in "Sale Line" is not valid according to its domain. -
+    >>> Journal = Model.get('account.journal')
+    >>> PaymentMethod = Model.get('account.invoice.payment.method')
+    >>> cash_journal, = Journal.find([('type', '=', 'cash')])
+    >>> cash_journal.save()
+    >>> payment_method = PaymentMethod()
+    >>> payment_method.name = 'Cash'
+    >>> payment_method.journal = cash_journal
+    >>> payment_method.credit_account = cash
+    >>> payment_method.debit_account = cash
+    >>> payment_method.save()
